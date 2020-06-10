@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 import urllib.request
 
 
@@ -31,13 +32,22 @@ class CraigslistScraper(object):
         except TimeoutException:
             print("Loading timed out")
 
-    # Extract Post titles from all class "result-row" elements
+    # Extract titles, dates, prices
     def extract_post_info(self):
         all_post = self.driver.find_elements_by_class_name("result-row")
+        soup = BeautifulSoup(self.driver.page_source, "lxml")
 
         dates = []
         titles = []
         prices = []
+        images = []
+
+        for row in soup.findAll("li", {"class": "result-row"}):
+            img = row.find("img")
+            if img is None:
+                images.append("null")
+            if isinstance(img, Tag) and img.has_attr("src"):
+                images.append(img['src'])
 
         for post in all_post:
             title = post.text.split("$")
@@ -66,7 +76,7 @@ class CraigslistScraper(object):
             titles.append(title)
             prices.append(price)
 
-        return dates, titles, prices
+        return dates, titles, prices, images
 
     # Extract Post URLs
     def extract_post_urls(self):
@@ -90,6 +100,6 @@ radius = "5"
 
 scraper = CraigslistScraper(location, postal, max_price, radius)
 scraper.load_craigslist_url()
-dates, titles, prices = scraper.extract_post_info()
+dates, titles, prices, images = scraper.extract_post_info()
 scraper.extract_post_urls()
 scraper.quit()
