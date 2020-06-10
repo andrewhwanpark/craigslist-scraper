@@ -7,6 +7,7 @@ from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
 import urllib.request
 
+
 class CraigslistScraper(object):
     def __init__(self, location, postal, max_price, radius):
         self.location = location
@@ -31,15 +32,43 @@ class CraigslistScraper(object):
             print("Loading timed out")
 
     # Extract Post titles from all class "result-row" elements
-    def extract_post_titles(self):
+    def extract_post_info(self):
         all_post = self.driver.find_elements_by_class_name("result-row")
-        post_title_list = []
+
+        dates = []
+        titles = []
+        prices = []
 
         for post in all_post:
-            post_title_list.append(post.text)
+            title = post.text.split("$")
 
-        return post_title_list
+            if title[0] == '':
+                title = title[1]
+            else:
+                title = title[0]
 
+            title = title.split("\n")
+            # If price is not a digit, set to 0
+            price = title[0] if title[0].isdigit() else "0"
+            title = title[-1]
+
+            title = title.split(" ")
+            month = title[0]
+            day = title[1]
+            title = ' '.join(title[2:])
+            date = month + " " + day
+
+            # print("Price: " + price)
+            # print("Title: " + title)
+            # print("Date: " + date)
+
+            dates.append(date)
+            titles.append(title)
+            prices.append(price)
+
+        return dates, titles, prices
+
+    # Extract Post URLs
     def extract_post_urls(self):
         all_url = []
         html_page = urllib.request.urlopen(self.url)
@@ -47,8 +76,12 @@ class CraigslistScraper(object):
 
         for link in soup.findAll("a", {"class": "result-title hdrlnk"}):
             all_url.append(link["href"])
-        print(all_url)
+
         return all_url
+
+    def quit(self):
+        self.driver.close()
+
 
 location = "newyork"
 postal = "10012"
@@ -57,5 +90,6 @@ radius = "5"
 
 scraper = CraigslistScraper(location, postal, max_price, radius)
 scraper.load_craigslist_url()
-# scraper.extract_post_titles()
+dates, titles, prices = scraper.extract_post_info()
 scraper.extract_post_urls()
+scraper.quit()
