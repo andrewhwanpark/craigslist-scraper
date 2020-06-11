@@ -7,6 +7,7 @@ from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 import urllib.request
+import json
 
 
 class CraigslistScraper(object):
@@ -17,7 +18,7 @@ class CraigslistScraper(object):
         self.radius = radius
         # URL
         self.url = f"https://{location}.craigslist.org/search/sss?search_distance={radius}&postal={postal}&max_price={max_price}"
-        # Selenium browser
+        # Selenium webdriver
         self.driver = webdriver.Chrome()
         # Load delay
         self.delay = 3
@@ -42,6 +43,7 @@ class CraigslistScraper(object):
         prices = []
         images = []
 
+        # Scrape image URLs
         for row in soup.findAll("li", {"class": "result-row"}):
             img = row.find("img")
             if img is None:
@@ -49,6 +51,7 @@ class CraigslistScraper(object):
             if isinstance(img, Tag) and img.has_attr("src"):
                 images.append(img['src'])
 
+        # Scrape title, price, date
         for post in all_post:
             title = post.text.split("$")
 
@@ -58,7 +61,8 @@ class CraigslistScraper(object):
                 title = title[0]
 
             title = title.split("\n")
-            # If price is not a digit, set to 0
+            # Oddity: If no pictures are uploaded & price is 0, price is not scraped
+            # Thus, if price is not a digit, set to 0
             price = title[0] if title[0].isdigit() else "0"
             title = title[-1]
 
@@ -89,6 +93,27 @@ class CraigslistScraper(object):
 
         return all_url
 
+    # Extract listing descriptions
+    def extract_post_desc(self, all_url):
+        descs = []
+
+        for url in all_url:
+            self.driver.get(url)
+            try:
+                wait = WebDriverWait(self.driver, self.delay)
+                # Wait until HTML element "postingbody" is loaded
+                wait.until(EC.presence_of_element_located(
+                    (By.ID, "postingbody")))
+            except TimeoutException:
+                print("Loading timed out")
+
+            soup = BeautifulSoup(self.driver.page_source, "lxml")
+
+            for desc in soup.findAll("section", {"id": "postingbody"}):
+                descs.append(desc.text)
+
+        return descs
+
     def quit(self):
         self.driver.close()
 
@@ -101,5 +126,6 @@ radius = "5"
 scraper = CraigslistScraper(location, postal, max_price, radius)
 scraper.load_craigslist_url()
 dates, titles, prices, images = scraper.extract_post_info()
-scraper.extract_post_urls()
+urls = scraper.extract_post_urls()
+descs = scraper.extract_post_desc(urls)
 scraper.quit()

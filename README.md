@@ -2,6 +2,12 @@
 
 Craigslist Web Scraper made to scrap data in order to populate our [craigslist-redux project](https://github.com/andrewhwanpark/craigslist-redux), in which we clone craigslist.org using modern technologies.
 
+# Pre-reqs: Install Chromedriver
+
+```zsh
+brew install chromedriver
+```
+
 # How it works
 
 The scraper will scrape one page of recent craigslist postings given parameters. You can adjust the parameters at the bottom of the code. Note that the location must be the same string in your craigslist URL. For example, in NYC, the location is "newyork".
