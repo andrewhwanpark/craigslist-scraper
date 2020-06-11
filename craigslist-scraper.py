@@ -72,10 +72,6 @@ class CraigslistScraper(object):
             title = ' '.join(title[2:])
             date = month + " " + day
 
-            # print("Price: " + price)
-            # print("Title: " + title)
-            # print("Date: " + date)
-
             dates.append(date)
             titles.append(title)
             prices.append(price)
@@ -110,7 +106,10 @@ class CraigslistScraper(object):
             soup = BeautifulSoup(self.driver.page_source, "lxml")
 
             for desc in soup.findAll("section", {"id": "postingbody"}):
-                descs.append(desc.text)
+                # Remove unwanted div inside section: QR code info
+                unwanted = desc.find("div")
+                unwanted.extract()
+                descs.append(desc.text.strip())
 
         return descs
 
@@ -118,6 +117,7 @@ class CraigslistScraper(object):
         self.driver.close()
 
 
+# Parameters: Change them to your desired config
 location = "newyork"
 postal = "10012"
 max_price = "2000"
