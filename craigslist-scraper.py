@@ -113,6 +113,26 @@ class CraigslistScraper(object):
 
         return descs
 
+    # Convert output into json file
+    @staticmethod
+    def convert_into_json(dates, titles, prices, images, descs):
+        output = []
+
+        for (date, title, price, image, desc) in zip(dates, titles, prices, images, descs):
+            json_info = {
+                'title': title,
+                'price': price,
+                'date': date,
+                'image': image,
+                'desc': desc
+            }
+
+            output.append(json_info)
+
+        with open("output.json", "w") as outfile:
+            json.dump(output, outfile, indent = 4)
+
+
     def quit(self):
         self.driver.close()
 
@@ -123,9 +143,17 @@ postal = "10012"
 max_price = "2000"
 radius = "5"
 
+# Initialize scraper
 scraper = CraigslistScraper(location, postal, max_price, radius)
+# Load URL with parameters
 scraper.load_craigslist_url()
+# Scrape date, titles, prices, images
 dates, titles, prices, images = scraper.extract_post_info()
+# Scrape URLs: used for description scraping
 urls = scraper.extract_post_urls()
+# Scrape descriptions of each listing
 descs = scraper.extract_post_desc(urls)
+# Quit selenium driver
 scraper.quit()
+# Convert output into json file
+scraper.convert_into_json(dates, titles, prices, images, descs)

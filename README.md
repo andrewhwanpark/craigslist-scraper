@@ -4,6 +4,12 @@ Craigslist Web Scraper made to scrap data in order to populate our [craigslist-r
 
 # Pre-reqs: Install Chromedriver
 
+Selenium won't work with Chrome unless you install chromedriver. If you are a Firefox user, you can just change the constructor to:
+
+```python
+self.driver = webdriver.Firefox()
+```
+
 ```zsh
 brew install chromedriver
 ```
@@ -18,3 +24,7 @@ postal = "10012"
 max_price = "2000"
 radius = "5"
 ```
+
+# Output
+
+The scraper will output a output.json file with the scraped titles, post description, images, dates, and price.
