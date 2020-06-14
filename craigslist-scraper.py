@@ -118,13 +118,14 @@ class CraigslistScraper(object):
     def convert_into_json(dates, titles, prices, images, descs):
         output = []
 
-        for (date, title, price, image, desc) in zip(dates, titles, prices, images, descs):
+        for index, (date, title, price, image, desc) in enumerate(zip(dates, titles, prices, images, descs)):
             json_info = {
                 'title': title,
                 'price': price,
                 'date': date,
                 'image': image,
-                'desc': desc
+                'desc': desc,
+                'id': index # Create keys for React (1,2,3,...)
             }
 
             output.append(json_info)
