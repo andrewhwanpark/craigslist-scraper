@@ -47,7 +47,7 @@ class CraigslistScraper(object):
         # Scrape all images
         for img_gallery in soup.findAll("a", {"class": "result-image"}):
             temp = []
-            
+
             # Check if listing has no images
             if img_gallery.has_attr("title"):
                 images.append("null")
@@ -55,7 +55,8 @@ class CraigslistScraper(object):
                 # We can construct image URL with data-ids attr
                 data_id = img_gallery["data-ids"].split(',')
                 for data in data_id:
-                    cleaned = "https://images.craigslist.org/" + data.split(":",1)[1] + "_1200x900.jpg"
+                    cleaned = "https://images.craigslist.org/" + \
+                        data.split(":", 1)[1] + "_1200x900.jpg"
                     temp.append(cleaned)
                 images.append(temp)
 
