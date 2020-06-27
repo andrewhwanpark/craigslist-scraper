@@ -41,15 +41,31 @@ class CraigslistScraper(object):
         dates = []
         titles = []
         prices = []
+        thumbnails = []
         images = []
 
-        # Scrape image URLs
+        # Scrape all images
+        for img_gallery in soup.findAll("a", {"class": "result-image"}):
+            temp = []
+            
+            # Check if listing has no images
+            if img_gallery.has_attr("title"):
+                images.append("null")
+            else:
+                # We can construct image URL with data-ids attr
+                data_id = img_gallery["data-ids"].split(',')
+                for data in data_id:
+                    cleaned = "https://images.craigslist.org/" + data.split(":",1)[1] + "_1200x900.jpg"
+                    temp.append(cleaned)
+                images.append(temp)
+
+        # Scrape thumbnails URLs
         for row in soup.findAll("li", {"class": "result-row"}):
             img = row.find("img")
             if img is None:
-                images.append("null")
+                thumbnails.append("null")
             if isinstance(img, Tag) and img.has_attr("src"):
-                images.append(img['src'])
+                thumbnails.append(img['src'])
 
         # Scrape title, price, date
         for post in all_post:
@@ -76,7 +92,7 @@ class CraigslistScraper(object):
             titles.append(title)
             prices.append(price)
 
-        return dates, titles, prices, images
+        return dates, titles, prices, thumbnails, images
 
     # Extract Post URLs
     def extract_post_urls(self):
@@ -105,6 +121,7 @@ class CraigslistScraper(object):
 
             soup = BeautifulSoup(self.driver.page_source, "lxml")
 
+            # Scrape desc
             for desc in soup.findAll("section", {"id": "postingbody"}):
                 # Remove unwanted div inside section: QR code info
                 unwanted = desc.find("div")
@@ -115,24 +132,24 @@ class CraigslistScraper(object):
 
     # Convert output into json file
     @staticmethod
-    def convert_into_json(dates, titles, prices, images, descs):
+    def convert_into_json(dates, titles, prices, thumbnails, images, descs):
         output = []
 
-        for index, (date, title, price, image, desc) in enumerate(zip(dates, titles, prices, images, descs)):
+        for index, (date, title, price, thumbnail, image, desc) in enumerate(zip(dates, titles, prices, thumbnails, images, descs)):
             json_info = {
                 'title': title,
                 'price': price,
                 'date': date,
+                'thumbnail': thumbnail,
                 'image': image,
                 'desc': desc,
-                'id': index # Create keys for React (1,2,3,...)
+                'id': index  # Create keys for React (1,2,3,...)
             }
 
             output.append(json_info)
 
         with open("output.json", "w") as outfile:
-            json.dump(output, outfile, indent = 4)
-
+            json.dump(output, outfile, indent=4)
 
     def quit(self):
         self.driver.close()
@@ -149,7 +166,7 @@ scraper = CraigslistScraper(location, postal, max_price, radius)
 # Load URL with parameters
 scraper.load_craigslist_url()
 # Scrape date, titles, prices, images
-dates, titles, prices, images = scraper.extract_post_info()
+dates, titles, prices, thumbnails, images = scraper.extract_post_info()
 # Scrape URLs: used for description scraping
 urls = scraper.extract_post_urls()
 # Scrape descriptions of each listing
@@ -157,4 +174,4 @@ descs = scraper.extract_post_desc(urls)
 # Quit selenium driver
 scraper.quit()
 # Convert output into json file
-scraper.convert_into_json(dates, titles, prices, images, descs)
+scraper.convert_into_json(dates, titles, prices, thumbnails, images, descs)
