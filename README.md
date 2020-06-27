@@ -29,4 +29,4 @@ radius = "5"
 
 ## Output
 
-The scraper will output a output.json file with the scraped titles, post description, images, dates, and price.
+The scraper will output a output.json file with the scraped titles, post descriptions, thumbnails, images, dates, and prices. The images are original size (1200x900).
